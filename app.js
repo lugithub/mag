@@ -9,7 +9,8 @@ var _ = require('ramda');
 //   return _.split(' ', str);
 // };
 
-var words = _.curry(_.split)(' ');
+//Most of the functions offered by the ramda library are curried by default.
+var words = _.split(' ');
 
 console.log(words('hi foo bar'));
 
@@ -40,7 +41,7 @@ var filterQs = function(xs) {
   }, xs);
 };
 
-var filterQs = _.curry(_.filter)(match(/q/i));
+var filterQs = _.filter(match(/q/i));
 
 console.log(filterQs(['hi foo bar', 'you super q', ]))
 
@@ -62,7 +63,7 @@ var max = function(xs) {
   }, -Infinity, xs);
 };
 
-var max = _.curry(_.reduce)(_keepHighest, -Infinity);
+var max = _.reduce(_keepHighest, -Infinity);
 
 console.log(max([1,2,3]))
 
