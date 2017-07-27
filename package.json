@@ -1,0 +1,22 @@
+{
+  "name": "mag",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lugithub/mag.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lugithub/mag/issues"
+  },
+  "homepage": "https://github.com/lugithub/mag#readme",
+  "dependencies": {
+    "ramda": "^0.24.1"
+  }
+}
