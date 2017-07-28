@@ -45,8 +45,21 @@ require([
       });
     };
 
-    var images = _.compose(_.map(img), srcs);
-    
+    //var images = _.compose(_.map(img), srcs);
+
+    //inline srcs
+    //var images = _.compose(_.map(img), _.compose(_.map(mediaUrl), _.prop('items')));
+
+    //remove extra compose
+    //var images = _.compose(_.map(img), _.map(mediaUrl), _.prop('items'));
+
+    //remove extra map
+    //var images = _.compose(_.map(_.compose(img, mediaUrl)), _.prop('items'));
+
+    //extract function out
+    var mediaToImg = _.compose(img, mediaUrl);
+    var images = _.compose(_.map(mediaToImg), _.prop('items'));
+
     var renderImages = _.compose(Impure.setHtml('body'), trace('srcs'), images);
     var app = _.compose(Impure.getJSON(renderImages), url);
 
