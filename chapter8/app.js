@@ -1,6 +1,25 @@
 var _ = require('ramda');
 var Task = require('data.task');
 
+var Container = function(x) {
+  this.__value = x;
+}
+
+Container.of = function(x) { return new Container(x); };
+
+console.log(Container.of(3));
+console.log(Container.of(Container.of({
+  name: 'yoda',
+})));
+
+// (a -> b) -> Container a -> Container b
+Container.prototype.map = function(f) {
+  return Container.of(f(this.__value));
+}
+
+console.log(Container.of("bombs").map(_.concat(' away')).map(_.prop('length')));
+console.log(_.map(_.compose(_.prop('length'), _.concat(' away')))(Container.of("bombs")));
+
 ////// Our pure library: lib/params.js ///////
 var Maybe = function(x) {
   this.__value = x;
