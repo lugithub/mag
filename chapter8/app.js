@@ -1,4 +1,5 @@
 var _ = require('ramda');
+var Task = require('data.task');
 
 ////// Our pure library: lib/params.js ///////
 var Maybe = function(x) {
@@ -53,3 +54,31 @@ var findParam = function(key) {
 // run it by calling __value()!
 console.log(findParam("searchTerm").__value());
 // Maybe([['searchTerm', 'wafflehouse']])
+
+var Left = function(x) {
+  this.__value = x;
+};
+
+Left.of = function(x) {
+  return new Left(x);
+};
+
+Left.prototype.map = function(f) {
+  return this;
+};
+
+var Right = function(x) {
+  this.__value = x;
+};
+
+Right.of = function(x) {
+  return new Right(x);
+};
+
+Right.prototype.map = function(f) {
+  return Right.of(f(this.__value));
+};
+
+var nested = Task.of([Right.of('pillows'), Left.of('no sleep for you')]);
+
+_.map(_.map(_.map(_.toUpper)), nested).fork(console.log, console.log);
