@@ -74,30 +74,61 @@ var findParam = function(key) {
 console.log(findParam("searchTerm").__value());
 // Maybe([['searchTerm', 'wafflehouse']])
 
-var Left = function(x) {
-  this.__value = x;
+//async tasks
+
+var fs = require('fs');
+
+//  readFile :: String -> Task Error String
+var readFile = function(filename) {
+  return new Task(function(reject, result) {
+
+    //doesn't run until task is forked
+
+    fs.readFile(filename, 'utf-8', function(err, data) {
+      console.log('run');
+      err ? reject(err) : result(data);
+    });
+  });
 };
 
-Left.of = function(x) {
-  return new Left(x);
-};
+readFile('./chapter8/metamorphosis').map(_.split('\n')).map(_.head)
+  .fork(console.log, console.log);
 
-Left.prototype.map = function(f) {
-  return this;
-};
+Task.of(3).map(function(three) {
+  console.log('run');
+  return three + 1;
+}).fork(console.log, console.log);
 
-var Right = function(x) {
-  this.__value = x;
-};
+// Promise is not pure, since they are not lazy evaluation
 
-Right.of = function(x) {
-  return new Right(x);
-};
+new Promise(function(resolve, reject) {
+  console.log('Promise is not lazy evaluation.');
+})
 
-Right.prototype.map = function(f) {
-  return Right.of(f(this.__value));
-};
-
-var nested = Task.of([Right.of('pillows'), Left.of('no sleep for you')]);
-
-_.map(_.map(_.map(_.toUpper)), nested).fork(console.log, console.log);
+// var Left = function(x) {
+//   this.__value = x;
+// };
+//
+// Left.of = function(x) {
+//   return new Left(x);
+// };
+//
+// Left.prototype.map = function(f) {
+//   return this;
+// };
+//
+// var Right = function(x) {
+//   this.__value = x;
+// };
+//
+// Right.of = function(x) {
+//   return new Right(x);
+// };
+//
+// Right.prototype.map = function(f) {
+//   return Right.of(f(this.__value));
+// };
+//
+// var nested = Task.of([Right.of('pillows'), Left.of('no sleep for you')]);
+//
+// _.map(_.map(_.map(_.toUpper)), nested).fork(console.log, console.log);
