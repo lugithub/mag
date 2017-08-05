@@ -56,6 +56,12 @@ var IO = function(f) {
   this.unsafePerformIO = f;
 };
 
+IO.of = function(x) {
+  return new IO(function() {
+    return x;
+  });
+}
+
 IO.prototype.map = function(f) {
   return new IO(_.compose(f, this.unsafePerformIO));
 };
@@ -107,9 +113,7 @@ var ex4 = function(n) {
   }
 };
 
-var ex4 = function(n) {
-  return _.map(parseInt)(Maybe.of(n));
-};
+var ex4 = _.compose(_.map(parseInt),Maybe.of);
 
 console.log(ex4('4'));
 
@@ -131,7 +135,8 @@ var getPost = function(i) {
   });
 };
 
-var ex5 = _.compose(_.map(_.compose(_.toUpper, _.prop('title'))), getPost);
+var upperTitle = _.compose(_.toUpper, _.prop('title'));
+var ex5 = _.compose(_.map(upperTitle), getPost);
 
 ex5(5).fork(console.log, console.log);
 
@@ -177,10 +182,6 @@ var save = function(x) {
   });
 };
 
-var ex8 = _.compose(either(function(e) {
-  return new IO(function() {
-    console.log(e);
-  });
-}, save), ex7);
+var ex8 = _.compose(either(IO.of, save), ex7);
 
 ex8('abcd').unsafePerformIO();
