@@ -22,6 +22,30 @@ console.log(Container.of("bombs").map(_.concat(' away')).map(_.prop('length')));
 console.log(_.map(_.compose(_.prop('length'), _.concat(' away')))(Container.of("bombs")));
 
 ////// Our pure library: lib/params.js ///////
+var Left = function(x) {
+  this.__value = x;
+};
+
+Left.of = function(x) {
+  return new Left(x);
+};
+
+Left.prototype.map = function(f) {
+  return this;
+};
+
+var Right = function(x) {
+  this.__value = x;
+};
+
+Right.of = function(x) {
+  return new Right(x);
+};
+
+Right.prototype.map = function(f) {
+  return Right.of(f(this.__value));
+}
+
 var Maybe = function(x) {
   this.__value = x;
 };
@@ -75,28 +99,21 @@ var findParam = function(key) {
 console.log(findParam("searchTerm").__value());
 // Maybe([['searchTerm', 'wafflehouse']])
 
-var Left = function(x) {
-  this.__value = x;
-};
+//async tasks
 
-Left.of = function(x) {
-  return new Left(x);
-};
+var fs = require('fs');
 
-Left.prototype.map = function(f) {
-  return this;
-};
+//  readFile :: String -> Task Error String
+var readFile = function(filename) {
+  return new Task(function(reject, result) {
 
-var Right = function(x) {
-  this.__value = x;
-};
+    //doesn't run until task is forked
 
-Right.of = function(x) {
-  return new Right(x);
-};
-
-Right.prototype.map = function(f) {
-  return Right.of(f(this.__value));
+    fs.readFile(filename, 'utf-8', function(err, data) {
+      console.log('run');
+      err ? reject(err) : result(data);
+    });
+  });
 };
 
 // Postgres.connect :: Url -> IO String
