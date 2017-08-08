@@ -1,5 +1,6 @@
 var _ = require('ramda');
 var Task = require('data.task');
+var fs = require('fs');
 
 var Container = function(x) {
   this.__value = x;
@@ -98,6 +99,62 @@ Right.prototype.map = function(f) {
   return Right.of(f(this.__value));
 };
 
-var nested = Task.of([Right.of('pillows'), Left.of('no sleep for you')]);
+// Postgres.connect :: Url -> IO String
 
-_.map(_.map(_.map(_.toUpper)), nested).fork(console.log, console.log);
+var Postgres = {};
+Postgres.connect = function(url) {
+  return new IO(function() {
+    console.log('asfsada');
+    return url + '***';
+  });
+}
+
+// runQuery :: String -> String
+
+var runQuery = function(x) {
+  return x + '111';
+}
+
+//  readFile :: String -> Task Error String
+var readFile = function(filename) {
+  return new Task(function(reject, result) {
+    fs.readFile(filename, 'utf-8', function(err, data) {
+      err ? reject(err) : result(data);
+    });
+  });
+};
+
+// Pure application
+//=====================
+
+//  dbUrl :: Config -> Either Error Url
+var dbUrl = function(c) {
+  return (c.uname && c.pass && c.host && c.db)
+    ? Right.of('db:pg://'+c.uname+':'+c.pass+'@'+c.host+'5432/'+c.db)
+    : Left.of(Error('Invalid config!'));
+}
+
+//  connectDb :: Config -> Either Error (IO DbConnection)
+var connectDb = _.compose(_.map(Postgres.connect), dbUrl);
+
+//  getConfig :: Filename -> Task Error (Either Error (IO DbConnection))
+var getConfig = _.compose(_.map(_.compose(connectDb, JSON.parse)), readFile);
+
+//  either :: (a -> c) -> (b -> c) -> Either a b -> c
+var either = _.curry(function(f, g, e) {
+  switch (e.constructor) {
+    case Left:
+      return f(e.__value);
+    case Right:
+      return g(e.__value);
+  }
+});
+
+
+// Impure calling code
+//=====================
+getConfig('chapter8/db.json').fork(
+  console.log, either(console.log, function(x) {
+    x.__value();
+  })
+);
