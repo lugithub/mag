@@ -2,6 +2,21 @@
 // ===========================
 var fs = require('fs');
 var _ = require('ramda');
+const { curry, compose, map } = _;
+
+const localStorage = {
+  getItem(key) {
+    return '{"color":"red"}';
+  }
+};
+
+function jQuery(sel) {
+  return {
+    css(props){
+      console.log(props);
+    }
+  }
+}
 
 var Maybe = function(x) {
   this.__value = x;
@@ -37,9 +52,17 @@ IO.prototype.map = function(f) {
   return new IO(_.compose(f, this.unsafePerformIO));
 };
 
+IO.prototype.join = function() {
+  var thiz = this;
+  return new IO(function() {
+    return thiz.unsafePerformIO().unsafePerformIO();
+  });
+}
+
 //  readFile :: String -> IO String
 var readFile = function(filename) {
   return new IO(function() {
+    console.log(`read ${filename}`);
     return fs.readFileSync(filename, 'utf-8');
   });
 };
@@ -55,12 +78,12 @@ var print = function(x) {
 // Example
 // ===========================
 //  cat :: String -> IO (IO String)
-var cat = _.compose(_.map(print), readFile);
+var cat = compose(map(print), readFile);
 
 console.log(cat('.git/config').unsafePerformIO().unsafePerformIO());
 
 //  catFirstChar :: String -> IO (IO String)
-var catFirstChar = _.compose(_.map(_.map(_.head)), cat);
+var catFirstChar = compose(map(map(_.head)), cat);
 
 console.log(catFirstChar(".git/config").unsafePerformIO().unsafePerformIO());
 
@@ -115,3 +138,38 @@ var x = firstAddressStreet({
 // Maybe({name: 'Mulburry', number: 8402})
 
 _.map(console.log)(x);
+
+
+//  log :: a -> IO a
+var log = function(x) {
+  return new IO(function() {
+    console.log(x);
+    return x;
+  });
+};
+
+//  setStyle :: Selector -> CSSProps -> IO DOM
+var setStyle = curry(function(sel, props) {
+  return new IO(function() {
+    return jQuery(sel).css(props);
+  });
+});
+
+//  getItem :: String -> IO String
+var getItem = function(key) {
+  return new IO(function() {
+    return localStorage.getItem(key);
+  });
+};
+
+//  applyPreferences :: String -> IO DOM
+// var applyPreferences = compose(
+//   join, map(setStyle('#main')), join, map(log), map(JSON.parse), getItem
+// );
+var applyPreferences = compose(
+  map(log), map(JSON.parse), getItem
+);
+
+applyPreferences('preferences').unsafePerformIO().unsafePerformIO();
+// Object {backgroundColor: "green"}
+// <div style="background-color: 'green'"/>
