@@ -1,6 +1,7 @@
 var _ = require('ramda');
 const { curry, compose, map } = _;
 var fs = require('fs');
+var path = require('path');
 var Task = require('data.task');
 
 //  chain :: Monad m => (a -> m b) -> m a -> m b
@@ -78,6 +79,10 @@ var either = curry(function(f, g, e) {
   }
 });
 
+split = curry(function(what, x) {
+    return x.split(what);
+});
+
 // Exercise 1
 // ==========
 // Use safeProp and map/join or chain to safely get the street name when given
@@ -111,12 +116,7 @@ var getFile = function() {
     return __filename;
   });
 };
-var rmdir = function(filename) {
-  return new IO(function() {
-    console.log('remove the directory');
-    return filename;
-  });
-};
+
 var pureLog = function(x) {
   return new IO(function() {
     console.log(x);
@@ -124,7 +124,7 @@ var pureLog = function(x) {
   });
 };
 
-var ex2 = compose(chain(pureLog), chain(rmdir), getFile);
+var ex2 = compose(chain(compose(pureLog, _.last, split(path.sep))), getFile);
 console.log(ex2().unsafePerformIO());
 
 
@@ -142,11 +142,7 @@ var getPost = function(i) {
     }, 300);
   });
 };
-var getId = function(post) {
-  return new Task(function(rej, res) {
-    res(post.id);
-  });
-};
+
 var getComments = function(i) {
   return new Task(function(rej, res) {
     setTimeout(function() {
@@ -162,7 +158,7 @@ var getComments = function(i) {
 };
 
 
-var ex3 = compose(_.chain(getComments), _.chain(getId), getPost)(1);
+var ex3 = compose(_.chain(compose(getComments, _.prop('id'))), getPost)(1);
 ex3.fork(console.log, console.log);
 
 
@@ -192,7 +188,7 @@ var validateEmail = function(x) {
 };
 
 //  ex4 :: Email -> Either String (IO String)
-var ex4 = compose(map(chain(emailBlast)), map(addToMailingList), validateEmail);
+var ex4 = compose(map(compose(chain(emailBlast), addToMailingList)), validateEmail);
 either(console.log, function(m) {
   console.log(m.unsafePerformIO());
 })(ex4('foo'));
