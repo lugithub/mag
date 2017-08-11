@@ -1,6 +1,31 @@
 var fs = require('fs');
 var _ = require('ramda');
-const { curry, compose, map } = _;
+const { curry, compose, map, add } = _;
+
+
+var Maybe = function(x) {
+  this.__value = x;
+};
+
+Maybe.of = function(x) {
+  return new Maybe(x);
+};
+
+Maybe.prototype.isNothing = function() {
+  return (this.__value === null || this.__value === undefined);
+};
+
+Maybe.prototype.map = function(f) {
+  return this.isNothing() ? Maybe.of(null) : Maybe.of(f(this.__value));
+};
+
+Maybe.prototype.join = function() {
+  return this.isNothing() ? Maybe.of(null) : this.__value;
+}
+
+Maybe.prototype.ap = function(other_container) {
+  return other_container.map(this.__value);
+}
 
 var IO = function(f) {
   this.unsafePerformIO = f;
@@ -22,8 +47,10 @@ IO.of = function(f) {
 };
 
 IO.prototype.ap = function(other_container) {
-  return other_container.map(this.unsafePerformIO);
+  return other_container.map(this.unsafePerformIO());
 };
+
+console.log(Maybe.of(add).ap(Maybe.of(2)).ap(Maybe.of(3)));
 
 // Helpers:
 // ==============
